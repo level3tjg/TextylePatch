@@ -31,7 +31,7 @@ void HookFunction(const char *funcname, void *replacement, void **replaced){
 		substitute_hook_functions_ptr(&hook, 1, NULL, SUBSTITUTE_NO_THREAD_SAFETY);
 	#else
 		struct rebinding binding = {funcname, replacement, replaced};
-	    rebind_symbols(&binding, 1);
+		rebind_symbols(&binding, 1);
 	#endif
 }
 
@@ -43,11 +43,9 @@ Ivar hook_class_getInstanceVariable(Class _class, const char *name){
 %hook UICalloutBarBackground
 -(void)layoutSubviews{
 	HookFunction("class_getInstanceVariable", (void *)hook_class_getInstanceVariable, (void **)&orig_class_getInstanceVariable);
-    %orig;
-    HookFunction("class_getInstanceVariable", (void *)orig_class_getInstanceVariable, (void **)&orig_class_getInstanceVariable);
-    void *obj;
-	object_getInstanceVariable(self, "_blurView", &obj);
-	UIView *blurView = (UIView *)obj;
+	%orig;
+	HookFunction("class_getInstanceVariable", (void *)orig_class_getInstanceVariable, (void **)&orig_class_getInstanceVariable);
+	UIView *blurView = MSHookIvar<UIView *>(self, "_blurView");
 	UIView *separatorView = MSHookIvar<UIImageView *>(self, "_separatorView");
 	UIImage *maskImage = [(UIVisualEffectView *)blurView _maskImage];
 	CALayer *maskingLayer = [CALayer layer];
