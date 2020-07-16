@@ -3,17 +3,6 @@
 #import <mach-o/dyld.h>
 #import "fishhook/fishhook.h"
 
-@interface UIVisualEffectView (Private)
--(UIImage *)_maskImage;
-@end
-
-@interface UICalloutBarBackground : UIView
-@end
-
-@interface TXTDockItemButton : UIView
--(void)setImage:(UIImage *)image forState:(NSUInteger)state;
-@end
-
 @interface UIKeyboardDockItem
 @property (nonatomic, strong) UIImage *image;
 @property (nonatomic, strong) NSString *identifier;
@@ -37,21 +26,25 @@ void HookFunction(const char *funcname, void *replacement, void **replaced){
 
 Ivar (*orig_class_getInstanceVariable)(Class _class, const char *name);
 Ivar hook_class_getInstanceVariable(Class _class, const char *name){
-	return orig_class_getInstanceVariable(_class, "_separatorView");
+	return orig_class_getInstanceVariable(_class, "_subviewCache");
 }
+
+%hook NSArray
+%new
+-(UIColor *)backgroundColor{
+	return [UIColor new];
+}
+%new
+-(void)setBackgroundColor:(UIColor *)color{
+	return;
+}
+%end
 
 %hook UICalloutBarBackground
 -(void)layoutSubviews{
 	HookFunction("class_getInstanceVariable", (void *)hook_class_getInstanceVariable, (void **)&orig_class_getInstanceVariable);
 	%orig;
-	HookFunction("class_getInstanceVariable", (void *)orig_class_getInstanceVariable, (void **)&orig_class_getInstanceVariable);
-	UIView *blurView = MSHookIvar<UIView *>(self, "_blurView");
-	UIView *separatorView = MSHookIvar<UIImageView *>(self, "_separatorView");
-	UIImage *maskImage = [(UIVisualEffectView *)blurView _maskImage];
-	CALayer *maskingLayer = [CALayer layer];
-	maskingLayer.frame = separatorView.bounds;
-	[maskingLayer setContents:(id)[maskImage CGImage]];
-	[separatorView.layer setMask:maskingLayer];
+	HookFunction("class_getInstanceVariable", (void *)orig_class_getInstanceVariable, NULL);
 }
 %end
 
@@ -72,6 +65,7 @@ Ivar hook_class_getInstanceVariable(Class _class, const char *name){
 %end
 
 %ctor{
+	dlopen("/Library/MobileSubstrate/DynamicLibraries/Textyle.dylib", RTLD_NOW);
 	#if __arm64e__
 	substitute_hook_functions_ptr = (int (*)(const struct
       substitute_function_hook *, size_t, struct substitute_function_hook_record

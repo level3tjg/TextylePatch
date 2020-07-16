@@ -1,9 +1,10 @@
 Package: com.level3tjg.textylepatch
 Name: TextylePatch
 Depends: mobilesubstrate, com.d11z.textyle, firmware (>=13.0)
-Version: 0.0.4
+Version: 0.0.5
 Architecture: iphoneos-arm
 Description: Make Textyle work on iOS 13
+Depiction: https://level3tjg.xyz/repo/depictions/?p=com.level3tjg.textylepatch
 Maintainer: level3tjg
 Author: level3tjg
 Section: Tweaks
